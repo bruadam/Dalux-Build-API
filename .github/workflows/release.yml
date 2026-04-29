@@ -1,0 +1,72 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: "Version bump type"
+        required: true
+        default: patch
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Bump version, commit & create release
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Use a PAT or the default GITHUB_TOKEN with write access.
+          # Push events from GITHUB_TOKEN do NOT retrigger workflows, which is
+          # fine here — we just need the release to trigger the publish jobs.
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Configure git
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      # ---------- bump package.json (and package-lock.json) ----------
+      - name: Bump version in package.json
+        id: bump
+        run: |
+          TAG=$(npm version ${{ inputs.bump }} --no-git-tag-version)
+          VERSION=${TAG#v}
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "tag=${TAG}"         >> "$GITHUB_OUTPUT"
+
+      # ---------- bump python/pyproject.toml ----------
+      - name: Bump version in pyproject.toml
+        run: |
+          sed -i "s/^version = \".*\"/version = \"${{ steps.bump.outputs.version }}\"/" \
+            python/pyproject.toml
+
+      # ---------- commit, tag, push ----------
+      - name: Commit & push version bump
+        run: |
+          git add package.json package-lock.json python/pyproject.toml
+          git commit -m "chore: release v${{ steps.bump.outputs.version }}"
+          git tag    v${{ steps.bump.outputs.version }}
+          git push origin HEAD --tags
+
+      # ---------- create GitHub release (triggers publish workflows) ----------
+      - name: Create GitHub Release
+        run: |
+          gh release create v${{ steps.bump.outputs.version }} \
+            --title "v${{ steps.bump.outputs.version }}" \
+            --generate-notes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

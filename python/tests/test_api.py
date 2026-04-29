@@ -8,7 +8,7 @@ from dalux_build.configuration import Configuration
 from dalux_build.api import (
     CompaniesApi, CompanyCatalogApi, FileAreasApi, FileRevisionsApi,
     FileUploadApi, FilesApi, FoldersApi, FormsApi, InspectionPlansApi,
-    ProjectTemplatesApi, ProjectsApi, TasksApi, TestPlansApi, UsersApi,
+    ProjectTemplatesApi, ProjectsApi, TasksApi, TestPlansApi as DaluxTestPlansApi, UsersApi,
     VersionSetsApi, WorkPackagesApi,
 )
 
@@ -44,7 +44,7 @@ class TestCreateClient:
         assert isinstance(dalux.inspection_plans, InspectionPlansApi)
         assert isinstance(dalux.project_templates, ProjectTemplatesApi)
         assert isinstance(dalux.tasks, TasksApi)
-        assert isinstance(dalux.test_plans, TestPlansApi)
+        assert isinstance(dalux.test_plans, DaluxTestPlansApi)
         assert isinstance(dalux.users, UsersApi)
         assert isinstance(dalux.version_sets, VersionSetsApi)
         assert isinstance(dalux.work_packages, WorkPackagesApi)
@@ -370,22 +370,22 @@ class TestTestPlansApi:
     @rsps_lib.activate
     def test_list_test_plans(self):
         _reg(rsps_lib.GET, "/1.2/projects/p1/testPlans", body=[])
-        assert TestPlansApi(_make_client()).list_test_plans("p1") == []
+        assert DaluxTestPlansApi(_make_client()).list_test_plans("p1") == []
 
     @rsps_lib.activate
     def test_list_test_plan_items(self):
         _reg(rsps_lib.GET, "/1.1/projects/p1/testPlanItems", body=[])
-        assert TestPlansApi(_make_client()).list_test_plan_items("p1") == []
+        assert DaluxTestPlansApi(_make_client()).list_test_plan_items("p1") == []
 
     @rsps_lib.activate
     def test_list_test_plan_item_zones(self):
         _reg(rsps_lib.GET, "/1.1/projects/p1/testPlanItemZones", body=[])
-        assert TestPlansApi(_make_client()).list_test_plan_item_zones("p1") == []
+        assert DaluxTestPlansApi(_make_client()).list_test_plan_item_zones("p1") == []
 
     @rsps_lib.activate
     def test_list_test_plan_registrations(self):
         _reg(rsps_lib.GET, "/1.1/projects/p1/testPlanRegistrations", body=[])
-        assert TestPlansApi(_make_client()).list_test_plan_registrations("p1") == []
+        assert DaluxTestPlansApi(_make_client()).list_test_plan_registrations("p1") == []
 
 
 # ---------- VersionSetsApi ----------
