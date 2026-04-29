@@ -331,9 +331,28 @@ describe('TasksApi', () => {
 
   afterEach(() => mock.restore());
 
-  it('getProjectTasks calls GET /5.1/projects/:id/tasks', async () => {
-    mock.onGet('/5.1/projects/p1/tasks').reply(200, []);
+  it('getProjectTasks calls GET /5.2/projects/:id/tasks', async () => {
+    mock.onGet('/5.2/projects/p1/tasks').reply(200, []);
     expect(await api.getProjectTasks('p1')).toEqual([]);
+  });
+
+  it('getAllProjectTasks follows nextPage bookmark pagination', async () => {
+    const page1 = {
+      items: [{ data: { taskId: 't1' } }],
+      metadata: { totalItems: 2 },
+      links: [{ rel: 'nextPage', href: 'https://api.example.com/build/5.2/projects/p1/tasks?bookmark=bm1', method: 'GET' }],
+    };
+    const page2 = {
+      items: [{ data: { taskId: 't2' } }],
+      metadata: { totalItems: 2 },
+      links: [],
+    };
+    mock.onGet('/5.2/projects/p1/tasks', { params: {} }).reply(200, page1);
+    mock.onGet('/5.2/projects/p1/tasks', { params: { bookmark: 'bm1' } }).reply(200, page2);
+    const all = await api.getAllProjectTasks('p1');
+    expect(all).toHaveLength(2);
+    expect(all[0].data.taskId).toBe('t1');
+    expect(all[1].data.taskId).toBe('t2');
   });
 
   it('getTask calls GET /3.3/projects/:id/tasks/:taskId', async () => {

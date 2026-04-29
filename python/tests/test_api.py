@@ -1,4 +1,4 @@
-"""Tests for create_client() and all API resource classes."""
+﻿"""Tests for create_client() and all API resource classes."""
 import pytest
 import responses as rsps_lib
 
@@ -188,8 +188,29 @@ class TestCompanyCatalogApi:
 class TestTasksApi:
     @rsps_lib.activate
     def test_get_project_tasks(self):
-        _reg(rsps_lib.GET, "/5.1/projects/p1/tasks", body=[])
+        _reg(rsps_lib.GET, "/5.2/projects/p1/tasks", body=[])
         assert TasksApi(_make_client()).get_project_tasks("p1") == []
+
+    @rsps_lib.activate
+    def test_get_all_project_tasks_follows_pagination(self):
+        page1 = {
+            "items": [{"data": {"taskId": "t1"}}],
+            "metadata": {"totalItems": 2},
+            "links": [
+                {"rel": "nextPage", "href": f"{BASE_URL}/5.2/projects/p1/tasks?bookmark=bm1", "method": "GET"}
+            ],
+        }
+        page2 = {
+            "items": [{"data": {"taskId": "t2"}}],
+            "metadata": {"totalItems": 2},
+            "links": [],
+        }
+        rsps_lib.add(rsps_lib.GET, f"{BASE_URL}/5.2/projects/p1/tasks", json=page1, status=200)
+        rsps_lib.add(rsps_lib.GET, f"{BASE_URL}/5.2/projects/p1/tasks", json=page2, status=200)
+        result = TasksApi(_make_client()).get_all_project_tasks("p1")
+        assert len(result) == 2
+        assert result[0]["data"]["taskId"] == "t1"
+        assert result[1]["data"]["taskId"] == "t2"
 
     @rsps_lib.activate
     def test_get_task(self):

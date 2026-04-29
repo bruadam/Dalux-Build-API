@@ -13,13 +13,41 @@ class TasksApi {
 
   /**
    * Retrieve tasks, approvals, safety issues, safety observations and good practices on a project.
-   * GET /5.1/projects/{projectId}/tasks
+  * GET /5.2/projects/{projectId}/tasks
    * @param {string} projectId
    * @param {object} [params] - Optional filters (e.g. updatedAfter, status, typeFilter)
    * @returns {Promise<object>}
    */
   getProjectTasks(projectId, params = {}) {
-    return this._client.get(`/5.1/projects/${projectId}/tasks`, params);
+    return this._client.get(`/5.2/projects/${projectId}/tasks`, params);
+  }
+
+  /**
+   * Retrieve all tasks on a project by following bookmark pagination automatically.
+   * Combines all pages into a single array of items.
+   * @param {string} projectId
+   * @param {object} [params] - Optional filters (e.g. updatedAfter, status, typeFilter)
+   * @returns {Promise<object[]>} All task items across all pages
+   */
+  async getAllProjectTasks(projectId, params = {}) {
+    const allItems = [];
+    let currentParams = { ...params };
+    let hasNextPage = true;
+
+    while (hasNextPage) {
+      const response = await this._client.get(`/5.2/projects/${projectId}/tasks`, currentParams);
+      if (Array.isArray(response.items)) {
+        allItems.push(...response.items);
+      }
+      const nextLink = (response.links || []).find(l => l.rel === 'nextPage');
+      if (nextLink) {
+        const bookmark = new URL(nextLink.href).searchParams.get('bookmark');
+        currentParams = { ...params, bookmark };
+      } else {
+        hasNextPage = false;
+      }
+    }
+    return allItems;
   }
 
   /**
