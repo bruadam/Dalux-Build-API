@@ -1,6 +1,17 @@
-# Dalux Build API – Node.js Client
+# Dalux Build API
 
-A lightweight Node.js client for the [Dalux Build REST API](https://app.swaggerhub.com/apis-docs/Dalux/DaluxBuild-api/4.14).
+API clients for the [Dalux Build REST API](https://app.swaggerhub.com/apis-docs/Dalux/DaluxBuild-api/4.14), available in two languages:
+
+| Language | Location | Documentation |
+|---|---|---|
+| Node.js | [`/`](.) | See below |
+| Python | [`/python`](python/) | [python/README.md](python/README.md) |
+
+---
+
+# Node.js Client
+
+A lightweight Node.js client for the Dalux Build REST API.
 
 ## Requirements
 
