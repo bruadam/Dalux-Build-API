@@ -10,6 +10,7 @@ class FilesApi:
     def __init__(self, api_client: ApiClient) -> None:
         self._client = api_client
 
+
     def list_files(
         self,
         project_id: str,
@@ -21,6 +22,43 @@ class FilesApi:
             f"/6.0/projects/{project_id}/file_areas/{file_area_id}/files",
             params=params,
         )
+
+    def get_all_files(
+        self,
+        project_id: str,
+        file_area_id: str,
+        params: Optional[Dict[str, Any]] = None,
+    ) -> list:
+        """Retrieve all files by following bookmark pagination automatically.
+
+        Combines all pages into a single list of items.
+        """
+        from urllib.parse import parse_qs, urlparse
+
+        all_items = []
+        current_params = dict(params or {})
+        has_next_page = True
+
+        while has_next_page:
+            response = self._client.get(
+                f"/6.0/projects/{project_id}/file_areas/{file_area_id}/files",
+                params=current_params,
+            )
+            items = response.get("items") if response else None
+            if items:
+                all_items.extend(items)
+            next_link = next(
+                (l for l in (response.get("links") or []) if l.get("rel") == "nextPage"),
+                None,
+            )
+            if next_link:
+                qs = parse_qs(urlparse(next_link["href"]).query)
+                bookmark = qs.get("bookmark", [None])[0]
+                current_params = {**dict(params or {}), "bookmark": bookmark}
+            else:
+                has_next_page = False
+
+        return all_items
 
     def get_file(
         self, project_id: str, file_area_id: str, file_id: str
