@@ -1,6 +1,6 @@
 {
   "name": "dalux-build-api",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Node.js client for the Dalux Build API",
   "main": "src/index.js",
   "files": [
