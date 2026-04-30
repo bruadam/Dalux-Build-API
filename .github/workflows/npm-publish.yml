@@ -1,19 +1,17 @@
 name: Publish npm Package
 
 on:
-  workflow_run:
-    workflows: ["Release"]
-    types: [completed]
+  release:
+    types: [published]
 
 jobs:
   test:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     name: Test Node.js
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
+          ref: ${{ github.ref }}
 
       - uses: actions/setup-node@v4
         with:
@@ -30,7 +28,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
+          ref: ${{ github.ref }}
 
       - uses: actions/setup-node@v4
         with:
